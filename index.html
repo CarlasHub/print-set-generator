@@ -3,8 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Print Set Generator</title>
-  <link rel="stylesheet" href="style.css">
+   <title>Print Set Generator (A1–A4 · JPG+PDF)</title>
+ <link rel="stylesheet" href="style.css" />
+
+  <!-- Serve libs locally to avoid HTTP/2/CDN issues -->
+  <script src="vendor/jszip.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  
+  <!-- Your app code -->
+  <script src="upload.js" defer></script>
+
 </head>
 <body>
 
@@ -55,7 +63,7 @@
   </div>
 </div>
 
-<script src="upload.js" defer></script>
+
 
 </body>
 </html>
