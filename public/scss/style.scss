@@ -1,0 +1,229 @@
+// Variables
+$font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+$bg: #eef2f9;
+$card-bg: #ffffff;
+$fg: #0d1117;
+$muted: #57606a;
+$primary: #2563eb;
+$primary-hover: #1d4ed8;
+$border: #d0d7de;
+$radius: 12px;
+$shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 5px 10px -6px rgba(0, 0, 0, 0.07);
+
+// Base
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: $font-sans;
+  background-color: $bg;
+  color: $fg;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Layout
+.app-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.upload-card {
+  width: 100%;
+  max-width: 500px;
+  background: $card-bg;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  border: 1px solid #dce4f0;
+  padding: 2rem;
+
+  &__header {
+    text-align: center;
+    margin-bottom: 2rem;
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 0.5rem;
+    }
+    p {
+      color: $muted;
+      margin: 0;
+    }
+  }
+}
+
+// Drag & Drop Zone
+.drop-zone {
+  position: relative;
+  border: 2px dashed $border;
+  border-radius: $radius;
+  padding: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+
+  &--active {
+    border-color: $primary;
+    background-color: lighten($primary, 40%);
+  }
+
+  &__prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  &__icon {
+    width: 48px;
+    height: 48px;
+    color: $primary;
+    margin-bottom: 0.5rem;
+  }
+
+  span {
+    font-weight: 600;
+  }
+
+  small {
+    color: $muted;
+  }
+
+  &__input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &__preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-weight: 600;
+  }
+
+  &__filename {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__remove-btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ef4444;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Form Options
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  input {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid $border;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.2);
+    }
+  }
+}
+
+.checkbox-wrapper {
+  margin: 1.5rem 0;
+  
+  input[type="checkbox"] {
+    display: none; // Hide default checkbox
+    
+    + label {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: start;
+      gap: 0.75rem;
+      cursor: pointer;
+
+      // Custom checkbox style
+      &::before {
+        content: '';
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid $border;
+        border-radius: 6px;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+    }
+
+    &:checked + label::before {
+      content: '✔';
+      background-color: $primary;
+      border-color: $primary;
+      color: white;
+      text-align: center;
+      line-height: 1.1rem;
+      font-size: 0.9rem;
+    }
+  }
+  
+  span {
+    font-weight: 600;
+  }
+  
+  small {
+    grid-column: 2;
+    color: $muted;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+}
+
+// Submit Button
+.submit-btn {
+  width: 100%;
+  background: $primary;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  padding: 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  
+  &:hover {
+    background: $primary-hover;
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
