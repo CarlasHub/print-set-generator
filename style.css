@@ -194,4 +194,5 @@ body {
 #downloadLink{
   margin-top: 1rem;
   background: green;
+  text-align: center;
 }
