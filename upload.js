@@ -1,7 +1,4 @@
-// upload.js — client-side generator (GitHub Pages safe)
-// Requires in index.html (before this file):
-//   <script src="jszip.min.js"></script>
-//   <script src="jspdf.umd.min.js"></script>
+
 
 document.addEventListener('DOMContentLoaded', () => {
   // ------- Elements (match your HTML) -------
