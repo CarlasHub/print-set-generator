@@ -34,7 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     '4x5_Ratio':{sizesIn:[[4,5],[8,10],[12,15],[16,20],[20,25],[24,30]]},
     'ISO_Ratio':{sizesMm:[[148,210],[210,297],[297,420],[420,594]]}
   };
+  const MC_IN=[[4,6],[5,7],[8,10],[11,14],[12,16],[16,20],[18,24],[24,36]];
+  const MC_MM=[[148,210],[210,297],[297,420],[420,594]];
+  const MC_SQ=[8,10,12,16,20];
+
   const mmToPx=(mm,dpi)=>Math.round((mm/25.4)*dpi);
+  const inToMm=in=>in*25.4;
   const safeBase=s=>(s||'Print').trim().replace(/\s+/g,'_').replace(/[^A-Za-z0-9_]/g,'');
 
   function blobToImage(fileOrBlob){ return new Promise((resolve,reject)=>{ const url=URL.createObjectURL(fileOrBlob); const img=new Image(); img.onload=()=>{ URL.revokeObjectURL(url); resolve(img); }; img.onerror=reject; img.src=url; }); }
@@ -45,10 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function canvasToPdfBlob(canvas,widthMM,heightMM){ const {jsPDF}=window.jspdf||{}; if(!jsPDF) throw new Error('jsPDF not loaded'); const dataUrl=canvas.toDataURL('image/jpeg',0.9); const pdf=new jsPDF({orientation:widthMM>heightMM?'landscape':'portrait',unit:'mm',format:[widthMM,heightMM]}); pdf.addImage(dataUrl,'JPEG',0,0,widthMM,heightMM,undefined,'FAST'); return pdf.output('blob'); }
 
-  function readme(base,dpi){ const px=k=>`${mmToPx(A_MM[k].w,dpi)} × ${mmToPx(A_MM[k].h,dpi)} px`; return `# ${base} Print Set
+  function readme(base,dpi,orientation){ const px=k=>`${mmToPx(A_MM[k].w,dpi)} × ${mmToPx(A_MM[k].h,dpi)} px`; return `# ${base} Print Set
 
 DPI ${dpi}
 Contain fit, white background
+Orientation: ${orientation}
 
 A sizes at ${dpi} ppi:
 A5 ${px('A5')}
@@ -63,6 +69,8 @@ Ready_to_Print_A_Sizes_PDF
 Ready_to_Print_A_Sizes_With_1in_Margins_JPG
 Ready_to_Print_A_Sizes_With_1in_Margins_PDF
 Aspect_Ratios
+Most_Common/JPG
+Most_Common/PDF
 `; }
 
   generateBtn.addEventListener('click',async()=>{ try{
@@ -72,19 +80,25 @@ Aspect_Ratios
     const margins=!!addMargins.checked;
     generateBtn.disabled=true; downloadLink.style.display='none'; if(live) live.textContent='Generating';
     const img=await blobToImage(file);
+    const isLandscape=img.naturalWidth>=img.naturalHeight;
+    const orientation=isLandscape?'landscape':'portrait';
     if(typeof JSZip==='undefined') throw new Error('JSZip not loaded');
     const zip=new JSZip();
     const root=zip.folder('Print_Set');
-    root.file('Instructions.txt',readme(base,dpi));
+    root.file('Instructions.txt',readme(base,dpi,orientation));
 
     const aJpg=root.folder('Ready_to_Print_A_Sizes_JPG');
     const aPdf=root.folder('Ready_to_Print_A_Sizes_PDF');
     const mJpg=margins?root.folder('Ready_to_Print_A_Sizes_With_1in_Margins_JPG'):null;
     const mPdf=margins?root.folder('Ready_to_Print_A_Sizes_With_1in_Margins_PDF'):null;
     const arRoot=root.folder('Aspect_Ratios');
+    const mcJpg=root.folder('Most_Common').folder('JPG');
+    const mcPdf=root.folder('Most_Common').folder('PDF');
+
+    function orientSize(w,h){ return isLandscape?{w,h}:{w:h,h:w}; }
 
     for(const key of ORDER){
-      const {w:mmW,h:mmH}=A_MM[key];
+      const {w:mmW,h:mmH}=orientSize(A_MM[key].w,A_MM[key].h);
       const pxW=mmToPx(mmW,dpi),pxH=mmToPx(mmH,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
       const jpg=await canvasToJpegBlob(c,0.9); aJpg.file(`${key}_${base}_Print.jpg`,await jpg.arrayBuffer());
@@ -101,19 +115,44 @@ Aspect_Ratios
       const out=arRoot.folder(folderName);
       if(spec.sizesIn){
         for(const [win,hin] of spec.sizesIn){
-          const pxW=Math.round(win*dpi); const pxH=Math.round(hin*dpi);
+          const {w:winMm,h:hinMm}=orientSize(inToMm(win),inToMm(hin));
+          const pxW=mmToPx(winMm,dpi),pxH=mmToPx(hinMm,dpi);
           const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
           const jpg=await canvasToJpegBlob(c,0.9);
           out.file(`${folderName}_${win}x${hin}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
         }
       } else if(spec.sizesMm){
         for(const [wmm,hmm] of spec.sizesMm){
-          const pxW=mmToPx(wmm,dpi); const pxH=mmToPx(hmm,dpi);
+          const {w,h}=orientSize(wmm,hmm);
+          const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
           const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
           const jpg=await canvasToJpegBlob(c,0.9);
-          out.file(`${folderName}_${wmm}x${hmm}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+          out.file(`${folderName}_${w}x${h}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
         }
       }
+    }
+
+    for(const [win,hin] of MC_IN){
+      const {w:winMm,h:hinMm}=orientSize(inToMm(win),inToMm(hin));
+      const pxW=mmToPx(winMm,dpi),pxH=mmToPx(hinMm,dpi);
+      const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`Most_Common_${win}x${hin}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,winMm,hinMm); mcPdf.file(`Most_Common_${win}x${hin}in_${base}.pdf`,await pdf.arrayBuffer());
+    }
+    for(const [wmm,hmm] of MC_MM){
+      const {w,h}=orientSize(wmm,hmm);
+      const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
+      const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`Most_Common_${w}x${h}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`Most_Common_${w}x${h}mm_${base}.pdf`,await pdf.arrayBuffer());
+    }
+    for(const n of MC_SQ){
+      const mm=inToMm(n);
+      const {w,h}=orientSize(mm,mm);
+      const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
+      const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`Most_Common_${n}x${n}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`Most_Common_${n}x${n}in_${base}.pdf`,await pdf.arrayBuffer());
     }
 
     if(live) live.textContent='Zipping';
