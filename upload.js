@@ -29,10 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const A_MM={A1:{w:594,h:841},A2:{w:420,h:594},A3:{w:297,h:420},A4:{w:210,h:297},A5:{w:148,h:210}};
   const ORDER=['A5','A4','A3','A2','A1'];
   const AR_SPECS={
-    '2x3_Ratio':{sizesIn:[[4,6],[8,12],[12,18],[16,24],[20,30],[24,36]]},
-    '3x4_Ratio':{sizesIn:[[6,8],[9,12],[12,16],[18,24]]},
-    '4x5_Ratio':{sizesIn:[[4,5],[8,10],[12,15],[16,20],[20,25],[24,30]]},
-    'ISO_Ratio':{sizesMm:[[148,210],[210,297],[297,420],[420,594]]}
+    '2x3':{sizesIn:[[4,6],[8,12],[12,18],[16,24],[20,30],[24,36]]},
+    '3x4':{sizesIn:[[6,8],[9,12],[12,16],[18,24]]},
+    '4x5':{sizesIn:[[4,5],[8,10],[12,15],[16,20],[20,25],[24,30]]},
+    'ISO':{sizesMm:[[148,210],[210,297],[297,420],[420,594]]}
   };
   const MC_IN=[[4,6],[5,7],[8,10],[11,14],[12,16],[16,20],[18,24],[24,36]];
   const MC_MM=[[148,210],[210,297],[297,420],[420,594]];
@@ -47,31 +47,24 @@ document.addEventListener('DOMContentLoaded', () => {
   function drawContain(canvas,img){ const ctx=canvas.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high'; ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); const iw=img.naturalWidth,ih=img.naturalHeight; const scale=Math.min(canvas.width/iw,canvas.height/ih); const w=Math.round(iw*scale),h=Math.round(ih*scale); const x=Math.floor((canvas.width-w)/2),y=Math.floor((canvas.height-h)/2); ctx.drawImage(img,0,0,iw,ih,x,y,w,h); }
 
   function canvasToJpegBlob(canvas,q=0.9){ return new Promise(res=>canvas.toBlob(res,'image/jpeg',q)); }
-
   async function canvasToPdfBlob(canvas,widthMM,heightMM){ const {jsPDF}=window.jspdf||{}; if(!jsPDF) throw new Error('jsPDF not loaded'); const dataUrl=canvas.toDataURL('image/jpeg',0.9); const pdf=new jsPDF({orientation:widthMM>heightMM?'landscape':'portrait',unit:'mm',format:[widthMM,heightMM]}); pdf.addImage(dataUrl,'JPEG',0,0,widthMM,heightMM,undefined,'FAST'); return pdf.output('blob'); }
 
-  function readme(base,dpi,orientation){ const px=k=>`${mmToPx(A_MM[k].w,dpi)} × ${mmToPx(A_MM[k].h,dpi)} px`; return `# ${base} Print Set
-
+  function readme(base,dpi,orientation){ 
+    const px=k=>`${mmToPx(A_MM[k].w,dpi)}×${mmToPx(A_MM[k].h,dpi)} px`;
+    return `# ${base} Print Set
 DPI ${dpi}
-Contain fit, white background
 Orientation: ${orientation}
 
-A sizes at ${dpi} ppi:
+A-series:
 A5 ${px('A5')}
 A4 ${px('A4')}
 A3 ${px('A3')}
 A2 ${px('A2')}
 A1 ${px('A1')}
 
-Folders:
-Sizes_JPG
-Sizes_PDF
-Sizes_With_1in_Margins_JPG
-Sizes_With_1in_Margins_PDF
-Aspect_Ratios
-JPG
-PDF
-`; }
+Aspect ratios: 2x3, 3x4, 4x5, ISO
+Additional inch/mm and square sizes included.`;
+  }
 
   generateBtn.addEventListener('click',async()=>{ try{
     const file=fileInput.files&&fileInput.files[0]; if(!file) return alert('Select an image');
@@ -87,13 +80,13 @@ PDF
     const root=zip.folder('Print_Set');
     root.file('Instructions.txt',readme(base,dpi,orientation));
 
-    const aJpg=root.folder('Ready_to_Print_A_Sizes_JPG');
-    const aPdf=root.folder('Ready_to_Print_A_Sizes_PDF');
-    const mJpg=margins?root.folder('Ready_to_Print_A_Sizes_With_1in_Margins_JPG'):null;
-    const mPdf=margins?root.folder('Ready_to_Print_A_Sizes_With_1in_Margins_PDF'):null;
+    const aJpg=root.folder('A_Sizes_JPG');
+    const aPdf=root.folder('A_Sizes_PDF');
+    const mJpg=margins?root.folder('A_Sizes_With_1in_Margins_JPG'):null;
+    const mPdf=margins?root.folder('A_Sizes_With_1in_Margins_PDF'):null;
     const arRoot=root.folder('Aspect_Ratios');
-    const mcJpg=root.folder('').folder('JPG');
-    const mcPdf=root.folder('').folder('PDF');
+    const mcJpg=root.folder('Sizes_JPG');
+    const mcPdf=root.folder('Sizes_PDF');
 
     function orientSize(w,h){ return isLandscape?{w,h}:{w:h,h:w}; }
 
@@ -101,13 +94,13 @@ PDF
       const {w:mmW,h:mmH}=orientSize(A_MM[key].w,A_MM[key].h);
       const pxW=mmToPx(mmW,dpi),pxH=mmToPx(mmH,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); aJpg.file(`${key}_${base}_Print.jpg`,await jpg.arrayBuffer());
-      const pdf=await canvasToPdfBlob(c,mmW,mmH); aPdf.file(`${key}_${base}_Print.pdf`,await pdf.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); aJpg.file(`${key}_${base}.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,mmW,mmH); aPdf.file(`${key}_${base}.pdf`,await pdf.arrayBuffer());
       if(margins){ const marginPx=Math.round(dpi); const innerW=Math.max(1,pxW-marginPx*2); const innerH=Math.max(1,pxH-marginPx*2);
         const mc=document.createElement('canvas'); mc.width=pxW; mc.height=pxH; const ctx=mc.getContext('2d',{alpha:false}); ctx.fillStyle='#fff'; ctx.fillRect(0,0,pxW,pxH);
         const ic=document.createElement('canvas'); ic.width=innerW; ic.height=innerH; drawContain(ic,img); ctx.drawImage(ic,marginPx,marginPx);
-        const mj=await canvasToJpegBlob(mc,0.9); mJpg.file(`${key}_${base}_Print_Margined.jpg`,await mj.arrayBuffer());
-        const mp=await canvasToPdfBlob(mc,mmW,mmH); mPdf.file(`${key}_${base}_Print_Margined.pdf`,await mp.arrayBuffer());
+        const mj=await canvasToJpegBlob(mc,0.9); mJpg.file(`${key}_${base}_Margined.jpg`,await mj.arrayBuffer());
+        const mp=await canvasToPdfBlob(mc,mmW,mmH); mPdf.file(`${key}_${base}_Margined.pdf`,await mp.arrayBuffer());
       }
     }
 
@@ -119,7 +112,7 @@ PDF
           const pxW=mmToPx(winMm,dpi),pxH=mmToPx(hinMm,dpi);
           const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
           const jpg=await canvasToJpegBlob(c,0.9);
-          out.file(`${folderName}_${win}x${hin}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+          out.file(`${win}x${hin}in_${base}.jpg`,await jpg.arrayBuffer());
         }
       } else if(spec.sizesMm){
         for(const [wmm,hmm] of spec.sizesMm){
@@ -127,7 +120,7 @@ PDF
           const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
           const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
           const jpg=await canvasToJpegBlob(c,0.9);
-          out.file(`${folderName}_${w}x${h}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+          out.file(`${w}x${h}mm_${base}.jpg`,await jpg.arrayBuffer());
         }
       }
     }
@@ -136,14 +129,14 @@ PDF
       const {w:winMm,h:hinMm}=orientSize(inToMm(win),inToMm(hin));
       const pxW=mmToPx(winMm,dpi),pxH=mmToPx(hinMm,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${win}x${hin}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${win}x${hin}in_${base}.jpg`,await jpg.arrayBuffer());
       const pdf=await canvasToPdfBlob(c,winMm,hinMm); mcPdf.file(`${win}x${hin}in_${base}.pdf`,await pdf.arrayBuffer());
     }
     for(const [wmm,hmm] of MC_MM){
       const {w,h}=orientSize(wmm,hmm);
       const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${w}x${h}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${w}x${h}mm_${base}.jpg`,await jpg.arrayBuffer());
       const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`${w}x${h}mm_${base}.pdf`,await pdf.arrayBuffer());
     }
     for(const n of MC_SQ){
@@ -151,7 +144,7 @@ PDF
       const {w,h}=orientSize(mm,mm);
       const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${n}x${n}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${n}x${n}in_${base}.jpg`,await jpg.arrayBuffer());
       const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`${n}x${n}in_${base}.pdf`,await pdf.arrayBuffer());
     }
 
@@ -166,4 +159,3 @@ PDF
   finally{ generateBtn.disabled=false; }
   });
 });
-
