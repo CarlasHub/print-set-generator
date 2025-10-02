@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const MC_SQ=[8,10,12,16,20];
 
   const mmToPx=(mm,dpi)=>Math.round((mm/25.4)*dpi);
-  const inToMm=in=>in*25.4;
+  const inToMm = in => in * 25.4;
   const safeBase=s=>(s||'Print').trim().replace(/\s+/g,'_').replace(/[^A-Za-z0-9_]/g,'');
 
   function blobToImage(fileOrBlob){ return new Promise((resolve,reject)=>{ const url=URL.createObjectURL(fileOrBlob); const img=new Image(); img.onload=()=>{ URL.revokeObjectURL(url); resolve(img); }; img.onerror=reject; img.src=url; }); }
