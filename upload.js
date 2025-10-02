@@ -77,7 +77,7 @@ Additional inch/mm and square sizes included.`;
     const orientation=isLandscape?'landscape':'portrait';
     if(typeof JSZip==='undefined') throw new Error('JSZip not loaded');
     const zip=new JSZip();
-    const root=zip.folder('Print_Set');
+    const root=zip.folder(`${base}_Print_Set`);
     root.file('Instructions.txt',readme(base,dpi,orientation));
 
     const aJpg=root.folder('A_Sizes_JPG');
