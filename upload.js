@@ -1,4 +1,4 @@
-<script>
+
 document.addEventListener('DOMContentLoaded', () => {
   const dropZone=document.querySelector('.drop-zone');
   const fileInput=document.querySelector('.drop-zone__input');
@@ -127,4 +127,4 @@ Aspect_Ratios
   finally{ generateBtn.disabled=false; }
   });
 });
-</script>
+
