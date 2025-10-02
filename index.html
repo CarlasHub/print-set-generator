@@ -1,18 +1,17 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Print Set Generator (A1–A4 · JPG+PDF)</title>
- <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Print Set Generator (A1–A4 · JPG+PDF)</title>
+  <link rel="stylesheet" href="style.css" />
 
-  <!-- Serve libs locally to avoid HTTP/2/CDN issues -->
+  <!-- Local libs (place these files in the repo root OR change paths if using /vendor) -->
   <script src="jszip.min.js"></script>
   <script src="jspdf.umd.min.js"></script>
-  
-  <!-- Your app code -->
-  <script src="upload.js" defer></script>
 
+  <!-- Your app logic (client-side generator) -->
+  <script src="upload.js" defer></script>
 </head>
 <body>
 
@@ -20,50 +19,56 @@
   <div class="upload-card">
     <div class="upload-card__header">
       <h1>Generate Your Print Set</h1>
-      <p>Upload a high-resolution image to get started.</p>
+      <p>Upload a high-resolution image to get started. Everything runs in your browser.</p>
     </div>
 
-    <form method="post" action="/print-set-generator" enctype="multipart/form-data">
-      
-      <div class="drop-zone">
+    <!-- CLIENT-SIDE ONLY: prevent submit; upload.js will handle generation -->
+    <form id="printForm" onsubmit="return false" enctype="multipart/form-data">
+      <div class="drop-zone" role="button" tabindex="0" aria-label="Upload image by clicking or dragging here">
         <div class="drop-zone__prompt">
           <svg class="drop-zone__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
           <span>Drag & Drop your image here</span>
-          <small>or click to browse</small>
+          <small>or click to browse (JPG/PNG)</small>
         </div>
         <div class="drop-zone__preview" style="display: none;">
           <span class="drop-zone__filename"></span>
           <button type="button" class="drop-zone__remove-btn">Remove</button>
         </div>
-        <input type="file" name="image" class="drop-zone__input" accept="image/*" required>
+        <input type="file" class="drop-zone__input" accept="image/*" hidden required>
       </div>
-      
+
       <div class="options-grid">
         <div>
           <label for="basename-input">Base Name</label>
-          <input type="text" id="basename-input" name="baseName" placeholder="e.g., Butterflies" required>
+          <input type="text" id="basename-input" placeholder="e.g., Butterflies" required>
         </div>
         <div>
           <label for="dpi-input">Print DPI</label>
-          <input type="number" id="dpi-input" name="dpi" value="300" min="72" max="600" required>
+          <input type="number" id="dpi-input" value="300" min="72" max="600" required>
         </div>
       </div>
-      
+
       <div class="checkbox-wrapper">
-        <input type="checkbox" id="addMargins" name="addMargins">
+        <input type="checkbox" id="addMargins">
         <label for="addMargins">
           <span>Add 1-inch Margins</span>
           <small>Creates an extra set of files with borders for easy framing.</small>
         </label>
       </div>
-      
-      <button class="submit-btn" type="submit">Generate Print Set ZIP</button>
 
+      <!-- Actions: JS-driven -->
+      <button class="submit-btn" id="generateBtn" type="button" disabled>Generate Print Set ZIP</button>
+      <a class="submit-btn" id="downloadLink" style="display:none;" download>Download ZIP</a>
+
+      <p class="footer">Output: A4/A3/A2/A1 as JPG + PDF, proportional (no crop), optional 1-inch margins. All processing stays on your device.</p>
+      <div class="sr-only" aria-live="polite" id="liveRegion"></div>
     </form>
   </div>
 </div>
 
-
+<noscript>
+  <p style="padding:12px; text-align:center;">Please enable JavaScript to use the generator.</p>
+</noscript>
 
 </body>
 </html>
