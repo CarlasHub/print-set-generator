@@ -64,13 +64,13 @@ A2 ${px('A2')}
 A1 ${px('A1')}
 
 Folders:
-Ready_to_Print_A_Sizes_JPG
-Ready_to_Print_A_Sizes_PDF
-Ready_to_Print_A_Sizes_With_1in_Margins_JPG
-Ready_to_Print_A_Sizes_With_1in_Margins_PDF
+Sizes_JPG
+Sizes_PDF
+Sizes_With_1in_Margins_JPG
+Sizes_With_1in_Margins_PDF
 Aspect_Ratios
-Most_Common/JPG
-Most_Common/PDF
+JPG
+PDF
 `; }
 
   generateBtn.addEventListener('click',async()=>{ try{
@@ -92,8 +92,8 @@ Most_Common/PDF
     const mJpg=margins?root.folder('Ready_to_Print_A_Sizes_With_1in_Margins_JPG'):null;
     const mPdf=margins?root.folder('Ready_to_Print_A_Sizes_With_1in_Margins_PDF'):null;
     const arRoot=root.folder('Aspect_Ratios');
-    const mcJpg=root.folder('Most_Common').folder('JPG');
-    const mcPdf=root.folder('Most_Common').folder('PDF');
+    const mcJpg=root.folder('').folder('JPG');
+    const mcPdf=root.folder('').folder('PDF');
 
     function orientSize(w,h){ return isLandscape?{w,h}:{w:h,h:w}; }
 
@@ -136,23 +136,23 @@ Most_Common/PDF
       const {w:winMm,h:hinMm}=orientSize(inToMm(win),inToMm(hin));
       const pxW=mmToPx(winMm,dpi),pxH=mmToPx(hinMm,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`Most_Common_${win}x${hin}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
-      const pdf=await canvasToPdfBlob(c,winMm,hinMm); mcPdf.file(`Most_Common_${win}x${hin}in_${base}.pdf`,await pdf.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${win}x${hin}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,winMm,hinMm); mcPdf.file(`${win}x${hin}in_${base}.pdf`,await pdf.arrayBuffer());
     }
     for(const [wmm,hmm] of MC_MM){
       const {w,h}=orientSize(wmm,hmm);
       const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`Most_Common_${w}x${h}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
-      const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`Most_Common_${w}x${h}mm_${base}.pdf`,await pdf.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${w}x${h}mm_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`${w}x${h}mm_${base}.pdf`,await pdf.arrayBuffer());
     }
     for(const n of MC_SQ){
       const mm=inToMm(n);
       const {w,h}=orientSize(mm,mm);
       const pxW=mmToPx(w,dpi),pxH=mmToPx(h,dpi);
       const c=document.createElement('canvas'); c.width=pxW; c.height=pxH; drawContain(c,img);
-      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`Most_Common_${n}x${n}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
-      const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`Most_Common_${n}x${n}in_${base}.pdf`,await pdf.arrayBuffer());
+      const jpg=await canvasToJpegBlob(c,0.9); mcJpg.file(`${n}x${n}in_${base}_300dpi.jpg`,await jpg.arrayBuffer());
+      const pdf=await canvasToPdfBlob(c,w,h); mcPdf.file(`${n}x${n}in_${base}.pdf`,await pdf.arrayBuffer());
     }
 
     if(live) live.textContent='Zipping';
