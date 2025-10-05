@@ -43,11 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function blobToImage(fileOrBlob) { return new Promise((resolve, reject) => { const url = URL.createObjectURL(fileOrBlob); const img = new Image(); img.onload = () => { URL.revokeObjectURL(url); resolve(img); }; img.onerror = reject; img.src = url; }); }
 
-  /**
-   * ✨ FIXED: Replaced drawContain with drawCover
-   * This new function scales the image to cover the entire canvas, cropping
-   * excess from the sides or top/bottom to match the aspect ratio perfectly.
-   */
   function drawCover(canvas, img) {
     const ctx = canvas.getContext('2d', { alpha: false });
     ctx.imageSmoothingEnabled = true;
@@ -63,12 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let sx = 0, sy = 0, sWidth = iw, sHeight = ih;
 
-    // If image aspect ratio is wider than canvas, crop sides
     if (imageRatio > canvasRatio) {
       sWidth = ih * canvasRatio;
       sx = (iw - sWidth) / 2;
     } 
-    // If image aspect ratio is taller than canvas, crop top/bottom
     else if (imageRatio < canvasRatio) {
       sHeight = iw / canvasRatio;
       sy = (ih - sHeight) / 2;
@@ -120,13 +113,16 @@ Additional inch/mm and square sizes included.`;
       const mcJpg = root.folder('Sizes_JPG');
       const mcPdf = root.folder('Sizes_PDF');
 
-      function orientSize(w, h) { return isLandscape ? { w, h } : { w: h, h: w }; }
+      // ✨ THIS FUNCTION IS NOW FIXED
+      function orientSize(w, h) {
+        return isLandscape ? { w: h, h: w } : { w: w, h: h };
+      }
 
       for (const key of ORDER) {
         const { w: mmW, h: mmH } = orientSize(A_MM[key].w, A_MM[key].h);
         const pxW = mmToPx(mmW, dpi), pxH = mmToPx(mmH, dpi);
         const c = document.createElement('canvas'); c.width = pxW; c.height = pxH;
-        drawCover(c, img); // Swapped drawContain for drawCover
+        drawCover(c, img);
         const jpg = await canvasToJpegBlob(c, 0.9); aJpg.file(`${key}_${base}.jpg`, await jpg.arrayBuffer());
         const pdf = await canvasToPdfBlob(c, mmW, mmH); aPdf.file(`${key}_${base}.pdf`, await pdf.arrayBuffer());
         if (margins) {
@@ -135,7 +131,7 @@ Additional inch/mm and square sizes included.`;
           const innerH = Math.max(1, pxH - marginPx * 2);
           const mc = document.createElement('canvas'); mc.width = pxW; mc.height = pxH; const ctx = mc.getContext('2d', { alpha: false }); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, pxW, pxH);
           const ic = document.createElement('canvas'); ic.width = innerW; ic.height = innerH;
-          drawCover(ic, img); // Swapped drawContain for drawCover
+          drawCover(ic, img);
           ctx.drawImage(ic, marginPx, marginPx);
           const mj = await canvasToJpegBlob(mc, 0.9); mJpg.file(`${key}_${base}_Margined.jpg`, await mj.arrayBuffer());
           const mp = await canvasToPdfBlob(mc, mmW, mmH); mPdf.file(`${key}_${base}_Margined.pdf`, await mp.arrayBuffer());
@@ -146,19 +142,21 @@ Additional inch/mm and square sizes included.`;
         const out = arRoot.folder(folderName);
         if (spec.sizesIn) {
           for (const [win, hin] of spec.sizesIn) {
-            const { w: winMm, h: hinMm } = orientSize(inToMm(win), inToMm(hin));
+            const { w: w_in, h: h_in } = orientSize(win, hin);
+            const winMm = inToMm(w_in);
+            const hinMm = inToMm(h_in);
             const pxW = mmToPx(winMm, dpi), pxH = mmToPx(hinMm, dpi);
             const c = document.createElement('canvas'); c.width = pxW; c.height = pxH;
-            drawCover(c, img); // Swapped drawContain for drawCover
+            drawCover(c, img);
             const jpg = await canvasToJpegBlob(c, 0.9);
-            out.file(`${win}x${hin}in_${base}.jpg`, await jpg.arrayBuffer());
+            out.file(`${w_in}x${h_in}in_${base}.jpg`, await jpg.arrayBuffer());
           }
         } else if (spec.sizesMm) {
           for (const [wmm, hmm] of spec.sizesMm) {
             const { w, h } = orientSize(wmm, hmm);
             const pxW = mmToPx(w, dpi), pxH = mmToPx(h, dpi);
             const c = document.createElement('canvas'); c.width = pxW; c.height = pxH;
-            drawCover(c, img); // Swapped drawContain for drawCover
+            drawCover(c, img);
             const jpg = await canvasToJpegBlob(c, 0.9);
             out.file(`${w}x${h}mm_${base}.jpg`, await jpg.arrayBuffer());
           }
@@ -166,29 +164,32 @@ Additional inch/mm and square sizes included.`;
       }
 
       for (const [win, hin] of MC_IN) {
-        const { w: winMm, h: hinMm } = orientSize(inToMm(win), inToMm(hin));
+        const { w: w_in, h: h_in } = orientSize(win, hin);
+        const winMm = inToMm(w_in);
+        const hinMm = inToMm(h_in);
         const pxW = mmToPx(winMm, dpi), pxH = mmToPx(hinMm, dpi);
         const c = document.createElement('canvas'); c.width = pxW; c.height = pxH;
-        drawCover(c, img); // Swapped drawContain for drawCover
-        const jpg = await canvasToJpegBlob(c, 0.9); mcJpg.file(`${win}x${hin}in_${base}.jpg`, await jpg.arrayBuffer());
-        const pdf = await canvasToPdfBlob(c, winMm, hinMm); mcPdf.file(`${win}x${hin}in_${base}.pdf`, await pdf.arrayBuffer());
+        drawCover(c, img);
+        const jpg = await canvasToJpegBlob(c, 0.9); mcJpg.file(`${w_in}x${h_in}in_${base}.jpg`, await jpg.arrayBuffer());
+        const pdf = await canvasToPdfBlob(c, winMm, hinMm); mcPdf.file(`${w_in}x${h_in}in_${base}.pdf`, await pdf.arrayBuffer());
       }
       for (const [wmm, hmm] of MC_MM) {
         const { w, h } = orientSize(wmm, hmm);
         const pxW = mmToPx(w, dpi), pxH = mmToPx(h, dpi);
         const c = document.createElement('canvas'); c.width = pxW; c.height = pxH;
-        drawCover(c, img); // Swapped drawContain for drawCover
+        drawCover(c, img);
         const jpg = await canvasToJpegBlob(c, 0.9); mcJpg.file(`${w}x${h}mm_${base}.jpg`, await jpg.arrayBuffer());
         const pdf = await canvasToPdfBlob(c, w, h); mcPdf.file(`${w}x${h}mm_${base}.pdf`, await pdf.arrayBuffer());
       }
       for (const n of MC_SQ) {
-        const mm = inToMm(n);
-        const { w, h } = orientSize(mm, mm);
-        const pxW = mmToPx(w, dpi), pxH = mmToPx(h, dpi);
+        const { w: w_in, h: h_in } = orientSize(n, n);
+        const w_mm = inToMm(w_in);
+        const h_mm = inToMm(h_in);
+        const pxW = mmToPx(w_mm, dpi), pxH = mmToPx(h_mm, dpi);
         const c = document.createElement('canvas'); c.width = pxW; c.height = pxH;
-        drawCover(c, img); // Swapped drawContain for drawCover
-        const jpg = await canvasToJpegBlob(c, 0.9); mcJpg.file(`${n}x${n}in_${base}.jpg`, await jpg.arrayBuffer());
-        const pdf = await canvasToPdfBlob(c, w, h); mcPdf.file(`${n}x${n}in_${base}.pdf`, await pdf.arrayBuffer());
+        drawCover(c, img);
+        const jpg = await canvasToJpegBlob(c, 0.9); mcJpg.file(`${w_in}x${h_in}in_${base}.jpg`, await jpg.arrayBuffer());
+        const pdf = await canvasToPdfBlob(c, w_mm, h_mm); mcPdf.file(`${w_in}x${h_in}in_${base}.pdf`, await pdf.arrayBuffer());
       }
 
       if (live) live.textContent = 'Zipping';
