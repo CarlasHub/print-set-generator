@@ -11,6 +11,7 @@ Turn a single high‑resolution image into a full print suite: A‑series, commo
 - Fit mode (contain or cover) and manual orientation
 - Custom margin size + background color
 - Fully client‑side and private
+- Dark Academia visual theme
 
 ## How it works
 1. Upload your master image
