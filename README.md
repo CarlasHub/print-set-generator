@@ -1,46 +1,36 @@
-# 🖼️ Print Set Generator (A1–A4 · JPG + PDF)
+# Print Set Generator — Studio Edition
 
-Live demo: [https://carlashub.github.io/print-set-generator/](https://carlashub.github.io/print-set-generator/)
+Live demo: `https://carlashub.github.io/print-set-generator/`
 
----
+Turn a single high‑resolution image into a full print suite: A‑series, common ratios, inches/mm, optional margins, and PDFs — all in the browser.
 
-## ✨ What it does
-This tool was built out of necessity: I needed a fast way to **bulk resize images into high-quality print sizes** for artwork.  
-Instead of preparing each A1, A2, A3, A4 file manually, this app automatically generates:
+## What’s new (power‑house upgrade)
+- Pro layout with preview, output summary, and progress
+- A1–A5 selection + extra size families (ratios, inches, mm, square)
+- JPG/PDF toggles and quality slider
+- Fit mode (contain or cover) and manual orientation
+- Custom margin size + background color
+- Fully client‑side and private
 
-- 📸 **JPG files** at 300 ppi for A1, A2, A3, and A4  
-- 📄 **PDF files** at exact ISO paper dimensions (true A-series in millimetres)  
-- 📦 A ready-to-download **ZIP archive** with everything included  
-- ➕ Optional **1-inch margined versions** (extra white border for easy framing)
+## How it works
+1. Upload your master image
+2. Choose sizes and formats
+3. Generate and download a ZIP
 
-All the processing happens **in your browser**. No images are uploaded to a server.  
+All processing happens locally in the browser. No uploads.
 
----
+## Tips for best results
+- Use large originals (300 DPI for print)
+- Use “Contain” to avoid cropping
+- Use “Cover” when you want full‑bleed prints
 
-## 🚀 How to use
-1. Open the live site:  
-   👉 [https://carlashub.github.io/print-set-generator/](https://carlashub.github.io/print-set-generator/)
+## Roadmap
+- Real‑time crop guides
+- Multiple image batch mode
+- Saved presets
 
-2. **Upload your image**  
-   - Drag & drop or click the drop zone.  
-   - Use a high-resolution original for best results.
-
-3. **Enter a base name**  
-   - This name will be part of your exported files.  
-   - Example: `Butterflies` → `A4_Butterflies_Print.jpg`.
-
-4. **Set DPI** (default: 300)  
-   - For print quality, keep **300 ppi**.  
-   - You may lower it (e.g., 150) for lightweight web proofs.
-
-5. (Optional) **Add margins**  
-   - Adds 1-inch white borders around each size.  
-   - Useful when selling printable wall art for framing.
-
-6. Click **Generate Print Set ZIP**  
-   - After processing, a **Download ZIP** button appears.  
-   - Inside the ZIP you’ll find JPGs + PDFs for A1, A2, A3, A4.
-
----
-
-## 📂 Output structure
+## Publish on GitHub Pages
+1. Push the repo to GitHub.
+2. Go to **Settings → Pages**.
+3. Set **Source** to `main` branch and `/ (root)`.
+4. Save — your site will be live at the URL above.

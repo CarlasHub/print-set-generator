@@ -3,72 +3,186 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Print Set Generator (A1–A4 · JPG+PDF)</title>
+  <meta name="description" content="Generate professional print-ready JPG and PDF sets in A-sizes, aspect ratios, and gallery formats. All in your browser." />
+  <title>Print Set Generator • Pro Studio Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Local libs (place these files in the repo root OR change paths if using /vendor) -->
   <script src="jszip.min.js"></script>
   <script src="jspdf.umd.min.js"></script>
-
-  <!-- Your app logic (client-side generator) -->
   <script src="upload.js" defer></script>
 </head>
 <body>
-
-<div class="app-container">
-  <div class="upload-card">
-    <div class="upload-card__header">
-      <h1>Generate Your Print Set</h1>
-      <p>Upload a high-resolution image to get started. Everything runs in your browser.</p>
+  <header class="hero">
+    <nav class="nav">
+      <span class="brand">Print Set Generator</span>
+      <span class="badge">Studio Edition</span>
+    </nav>
+    <div class="hero-content">
+      <h1>Turn one image into a full print suite.</h1>
+      <p>Generate gallery-ready JPGs + PDFs in A1–A5, common frame ratios, and extra sizing formats. Fast, private, and pixel-perfect.</p>
+      <div class="hero-actions">
+        <button id="reset-all" class="btn ghost" type="button">Reset</button>
+        <button id="seed-demo" class="btn ghost" type="button">Load demo image</button>
+      </div>
     </div>
+  </header>
 
-    <!-- CLIENT-SIDE ONLY: prevent submit; upload.js will handle generation -->
-    <form id="printForm" onsubmit="return false" enctype="multipart/form-data">
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-title">
+        <h2>1. Upload</h2>
+        <p>Drop your master file. Nothing leaves your device.</p>
+      </div>
       <div class="drop-zone" role="button" tabindex="0" aria-label="Upload image by clicking or dragging here">
         <div class="drop-zone__prompt">
           <svg class="drop-zone__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
           <span>Drag & Drop your image here</span>
-          <small>or click to browse (JPG/PNG)</small>
+          <small>JPG, PNG, or TIFF • High resolution recommended</small>
         </div>
         <div class="drop-zone__preview" style="display: none;">
-          <span class="drop-zone__filename"></span>
+          <div>
+            <p class="drop-zone__filename"></p>
+            <p class="drop-zone__meta" id="fileMeta"></p>
+          </div>
           <button type="button" class="drop-zone__remove-btn">Remove</button>
         </div>
         <input type="file" class="drop-zone__input" accept="image/*" hidden required>
       </div>
 
-      <div class="options-grid">
-        <div>
-          <label for="basename-input">Base Name</label>
-          <input type="text" id="basename-input" placeholder="e.g., Butterflies" required>
+      <div class="preview-card">
+        <div class="preview-image" id="previewImage">
+          <span>Preview will appear here</span>
         </div>
-        <div>
-          <label for="dpi-input">Print DPI</label>
-          <input type="number" id="dpi-input" value="300" min="72" max="600" required>
+        <div class="preview-details">
+          <p><strong>Output summary</strong></p>
+          <ul id="summaryList"></ul>
         </div>
       </div>
+    </section>
 
-      <div class="checkbox-wrapper">
-        <input type="checkbox" id="addMargins">
-        <label for="addMargins">
-          <span>Add 1-inch Margins</span>
-          <small>Creates an extra set of files with borders for easy framing.</small>
-        </label>
+    <section class="panel wide">
+      <div class="panel-title">
+        <h2>2. Configure</h2>
+        <p>Choose quality, sizes, and export formats.</p>
       </div>
 
-      <!-- Actions: JS-driven -->
-      <button class="submit-btn" id="generateBtn" type="button" disabled>Generate Print Set ZIP</button>
-      <a class="submit-btn" id="downloadLink" style="display:none;" download>Download ZIP</a>
+      <form id="printForm" onsubmit="return false" enctype="multipart/form-data">
+        <div class="grid">
+          <label class="field">
+            <span>Base Name</span>
+            <input type="text" id="basename-input" placeholder="e.g., Butterflies" required>
+          </label>
+          <label class="field">
+            <span>DPI</span>
+            <input type="number" id="dpi-input" value="300" min="72" max="600" required>
+          </label>
+          <label class="field">
+            <span>Quality</span>
+            <input type="range" id="quality-input" min="80" max="100" value="92">
+            <small id="qualityLabel">92%</small>
+          </label>
+          <label class="field">
+            <span>Fit Mode</span>
+            <select id="fit-mode">
+              <option value="contain">Contain (no crop)</option>
+              <option value="cover">Cover (crop)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Orientation</span>
+            <select id="orientation-mode">
+              <option value="auto">Auto</option>
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Background</span>
+            <input type="color" id="bg-color" value="#ffffff">
+          </label>
+        </div>
 
-      <p class="footer">Output: A4/A3/A2/A1 as JPG + PDF, proportional (no crop), optional 1-inch margins. All processing stays on your device.</p>
-      <div class="sr-only" aria-live="polite" id="liveRegion"></div>
-    </form>
-  </div>
-</div>
+        <div class="section">
+          <h3>Output Formats</h3>
+          <div class="toggle-row">
+            <label class="toggle">
+              <input type="checkbox" id="toggle-jpg" checked>
+              <span>JPG</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-pdf" checked>
+              <span>PDF</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-margins">
+              <span>Include margins</span>
+            </label>
+            <label class="field compact">
+              <span>Margin (in)</span>
+              <input type="number" id="margin-size" value="1" min="0" max="2" step="0.25">
+            </label>
+          </div>
+        </div>
 
-<noscript>
-  <p style="padding:12px; text-align:center;">Please enable JavaScript to use the generator.</p>
-</noscript>
+        <div class="section">
+          <h3>A-Sizes</h3>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" value="A5" checked> A5</label>
+            <label class="chip"><input type="checkbox" value="A4" checked> A4</label>
+            <label class="chip"><input type="checkbox" value="A3" checked> A3</label>
+            <label class="chip"><input type="checkbox" value="A2" checked> A2</label>
+            <label class="chip"><input type="checkbox" value="A1" checked> A1</label>
+          </div>
+        </div>
 
+        <div class="section">
+          <h3>Extra Sizes</h3>
+          <div class="toggle-row">
+            <label class="toggle">
+              <input type="checkbox" id="toggle-ratios" checked>
+              <span>Aspect ratios</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-inches" checked>
+              <span>Inches (4x6 → 24x36)</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-mm" checked>
+              <span>Millimeters</span>
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="toggle-square">
+              <span>Square sizes</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Export</h3>
+          <div class="export-row">
+            <button class="btn primary" id="generateBtn" type="button" disabled>Generate Print Set ZIP</button>
+            <a class="btn ghost" id="downloadLink" style="display:none;" download>Download ZIP</a>
+          </div>
+          <div class="progress">
+            <div id="progressBar"></div>
+          </div>
+          <div class="status-row">
+            <span id="statusText">Ready</span>
+            <span id="estimates">—</span>
+          </div>
+        </div>
+
+        <p class="footer-note">Processing happens locally in your browser. Large files may take a few minutes.</p>
+        <div class="sr-only" aria-live="polite" id="liveRegion"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Built for artists, sellers, and studios. No uploads. No tracking. Just print-ready files.</p>
+  </footer>
 </body>
 </html>
